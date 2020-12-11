@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
 #include "dllist.h"
 #include "jrb.h"
 #include "jval.h"
@@ -28,6 +29,7 @@ typedef struct info_acc{
 
 /*Basic graph function*/
 Graph createGraph();
+void dropGraph();
 void addVertex(int id, char *name, char *city, Gender gender);
 Info getVertexInfo(int id);
 void addEdge(int id1, int id2);
@@ -56,12 +58,16 @@ int main(int argc, char *argv[]) {
         if (readNodeData(argv[1]) == 0) return -1;
         if (readConnectionData(argv[2]) == 0) return -1;
     }
+    
+    // testPrintEdge();
+    // printf("\n");
+    // testPrintVertex();
+    // printf("\n");
 
-    testPrintEdge();
-    printf("\n");
-    testPrintVertex();
-    printf("\n");
+    getMinMaxFriendCount();
+    testConnectedGraph();
 
+    dropGraph();
     return 0;
 }
 
@@ -72,6 +78,23 @@ Graph createGraph() {
     graph.edges = make_jrb();
     graph.vertices = make_jrb();
     return graph;
+}
+
+void dropGraph() {
+    JRB node, tree;
+    jrb_traverse(node, graph.vertices) {
+        Info info = (Info) jval_v(node->val);
+        free(info->name);
+        free(info->city);
+        free(info);
+    }
+    jrb_free_tree(graph.vertices);
+
+    jrb_traverse(node, graph.edges) {
+        tree = (JRB) jval_v(node->val);
+        jrb_free_tree(tree);
+    }
+    jrb_free_tree(graph.edges);
 }
 
 void addVertex(int id, char *name, char *city, Gender gender) {
@@ -173,7 +196,7 @@ int readConnectionData(char *fileName) {
     if (dataStream == NULL) return 0;
     int id1, id2;
     while (fscanf(dataStream, "%d%d", &id1, &id2) == 2) {
-        if (id1 >= id2) return 0;
+        if (id1 >= id2 || id2 > accountCount) return 0;
         addEdge(id1, id2);
     }
 
@@ -232,4 +255,55 @@ void testPrintEdge() {
         }
         printf("\n");
     }
+}
+
+int testConnectedGraph() {
+    int *visit = (int*) calloc(accountCount + 1, sizeof(int));
+    Dllist queue, node;
+    queue = new_dllist();
+    dll_append(queue, new_jval_i(1)); // go from ID 1
+    int count = accountCount;
+
+    while(!dll_empty(queue)) {
+        node = dll_first(queue);
+        int value = jval_i(node->val);
+        dll_delete_node(node);
+        if (visit[value] == 0) {
+            visit[value] = 1;
+            count--;
+            JRB ptr, tree;
+            tree = jrb_find_int(graph.edges, value);
+            tree = (JRB) jval_v(tree->val);
+            jrb_traverse(ptr, tree) {
+                int tmp = jval_i(ptr->key);
+                if (visit[tmp] == 0)
+                    dll_append(queue, new_jval_i(tmp));
+            }
+        }
+    }
+
+    if (count == 0) printf("Connected Graph\n");
+    else {
+        printf("%d disconnected node:\n", count);
+        for (int i = 1; i <= accountCount; i++) {
+            if (visit[i] == 0) printf("%d ", i);
+        }
+        printf("\n");
+    }
+    
+    free(visit);
+    free_dllist(queue);
+    return count;
+}
+
+void getMinMaxFriendCount() {
+    JRB account;
+    int minFriendCount = accountCount, maxFriendCount = 0;
+    jrb_traverse(account, graph.vertices) {
+        int tmp = ((Info) jval_v(account->val))->friendCount;
+        if (tmp < minFriendCount) minFriendCount = tmp;
+        if (tmp > maxFriendCount) maxFriendCount = tmp;
+    }
+    printf("Min friend count: %d\n", minFriendCount);
+    printf("Max friend count: %d\n", maxFriendCount);
 }
