@@ -13,4 +13,5 @@ Facebook also wants to sort users by name / the number of friends, and some more
     + Get user info by name, list all duplicated results (sort by name then binary search)
 
 - Note:
+    + NodeFile before ConnectionFile (when run)
     
