@@ -43,6 +43,9 @@ int compareFriendCount(int id1, int id2);
 void genSort(int *accList, int l, int r, int (*compare)(int, int));
 void swap(int *accList, int id1, int id2);
 
+/*Search function*/
+void binarySearch(int *accList, int l, int r, char *name, char *city, char *gender);
+
 /*Shortest Path*/
 int shortestPath(int s, int t, int *path); // return path length
 
@@ -222,15 +225,74 @@ void genSort(int *accList, int l, int r, int (*compare)(int, int)) {
     
 }
 
+/* ------------------------ Search Function ------------------------ */
+
+void binarySearch(int *accList, int l, int r, char *name, char *city, char *gender) {
+    
+}
+
 /* ------------------------ Shortest Path ------------------------ */
 
 int shortestPath(int s, int t, int *path) {
+    if (s > accountCount || t > accountCount || s < 1 || t < 1) {
+        if (s > accountCount || s < 1) printf("No node %d\n", s);
+        if (t > accountCount || t < 1) printf("No node %d\n", t);
+        return 0;
+    }
+    
+    int *distance, *visit, *previous;
+    distance = (int*) calloc(accountCount + 1, sizeof(int));
+    for (int i = 0; i < accountCount + 1; i++) distance[i] = accountCount + 1;
+    visit = (int*) calloc(accountCount + 1, sizeof(int));
+    previous = (int*) calloc(accountCount + 1, sizeof(int));
 
+    distance[s] = 0;
+    visit[s] = 1;
+    previous[s] = -1;
+
+    Dllist ptr, queue, node;
+    queue = new_dllist();
+    dll_append(queue, new_jval_i(s));
+
+    while (!dll_empty(queue)) {
+        node = dll_first(queue);
+        int u = jval_i(node->val);
+        if (u == t) break;
+        dll_delete_node(node);
+
+        JRB account, tree;
+        tree = (JRB) jval_v(jrb_find_int(graph.edges, u)->val);
+        jrb_traverse(account, tree) {
+            int v = jval_i(account->key);
+            if (visit[v] == 0) {
+                visit[v] = 1;
+                dll_append(queue, new_jval_i(v));
+            }
+            if (distance[v] > distance[u] + 1) {
+                distance[v] = distance[u] + 1;
+                previous[v] = u;
+            }
+        }
+    }
+    free_dllist(queue);
+
+    int length, tmp;
+    length = tmp = distance[t];
+    while (t != -1) {
+        path[tmp--] = t;
+        t = previous[t];
+    }
+
+    free(distance);
+    free(visit);
+    free(previous);
+    return length;
 }
 
 /* ------------------------ Debuging ------------------------ */
 
 void testPrintVertex() {
+    if (accountCount > 100) return;
     JRB account;
     jrb_traverse(account, graph.vertices) {
         printf("ID: %d\n", jval_i(account->key));
@@ -246,6 +308,7 @@ void testPrintVertex() {
 }
 
 void testPrintEdge() {
+    if (accountCount > 100) return;
     JRB account, tree, friend;
     jrb_traverse(account, graph.edges) {
         printf("%d: ", jval_i(account->key));
@@ -262,22 +325,21 @@ int testConnectedGraph() {
     Dllist queue, node;
     queue = new_dllist();
     dll_append(queue, new_jval_i(1)); // go from ID 1
-    int count = accountCount;
+    int count = accountCount + 1;
 
     while(!dll_empty(queue)) {
         node = dll_first(queue);
         int value = jval_i(node->val);
         dll_delete_node(node);
-        if (visit[value] == 0) {
-            visit[value] = 1;
-            count--;
-            JRB ptr, tree;
-            tree = jrb_find_int(graph.edges, value);
-            tree = (JRB) jval_v(tree->val);
-            jrb_traverse(ptr, tree) {
-                int tmp = jval_i(ptr->key);
-                if (visit[tmp] == 0)
-                    dll_append(queue, new_jval_i(tmp));
+        count--;
+        JRB ptr, tree;
+        tree = jrb_find_int(graph.edges, value);
+        tree = (JRB) jval_v(tree->val);
+        jrb_traverse(ptr, tree) {
+            int tmp = jval_i(ptr->key);
+            if (visit[tmp] == 0) {
+                visit[tmp] = 1;
+                dll_append(queue, new_jval_i(tmp));
             }
         }
     }
