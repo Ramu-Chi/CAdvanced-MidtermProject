@@ -49,6 +49,9 @@ void binarySearch(int *accList, int l, int r, char *name, char *city, char *gend
 /*Shortest Path*/
 int shortestPath(int s, int t, int *path); // return path length
 
+/*Recommend Friend*/
+void RecommendFriend(int id);
+
 /*Debuging*/
 void testPrintVertex();
 void testPrintEdge();
@@ -62,10 +65,10 @@ int main(int argc, char *argv[]) {
         if (readConnectionData(argv[2]) == 0) return -1;
     }
     
-    // testPrintEdge();
-    // printf("\n");
-    // testPrintVertex();
-    // printf("\n");
+    testPrintEdge();
+    printf("\n");
+    testPrintVertex();
+    printf("\n");
 
     getMinMaxFriendCount();
     testConnectedGraph();
@@ -177,7 +180,7 @@ int readNodeData(char *fileName) {
         currentChar = getc(dataStream);
         while (currentChar != '\"') {
             name[count++] = currentChar;
-            if (count > 30) return 0;
+            if (count > 30 || currentChar == '\n') return 0;
             currentChar = getc(dataStream);
         }
         name[count] = '\0';
@@ -287,6 +290,46 @@ int shortestPath(int s, int t, int *path) {
     free(visit);
     free(previous);
     return length;
+}
+
+/* ------------------------ Recommend Friend ------------------------ */
+
+void RecommendFriend(int id) {
+    JRB tree, node;
+    int *check;
+    check = (int*) calloc(accountCount + 1, sizeof(int));
+    check[id] = -1;
+    
+    tree = jrb_find_int(graph.edges, id);
+    tree = (JRB) jval_v(tree->val);
+    jrb_traverse(node, tree) {
+        check[jval_i(node->key)] = -1;
+    }
+
+    jrb_traverse(node, tree) {
+        JRB innerTree, innerNode;
+        innerTree = jrb_find_int(graph.edges, jval_i(node->key));
+        innerTree = (JRB) jval_v(innerTree->val);
+        jrb_traverse(innerNode, innerTree) {
+            int tmp = jval_i(innerNode->key);
+            if (check[tmp] != -1) check[tmp]++;
+        }
+    }
+
+    int max = 0;
+    for (int i = 1; i <= accountCount; i++) {
+        if (max < check[i]) max = check[i];
+    }
+
+    for (int i = 1; i <= accountCount; i++) {
+        if (check[i] == max) {
+            JRB account = jrb_find_int(graph.vertices, i);
+            Info info = (Info) jval_v(account->val);
+            printf("ID: %d\nName: %s\n%d common friends\n\n", i, info->name, max);
+        }
+    }
+
+    free(check);
 }
 
 /* ------------------------ Debuging ------------------------ */
