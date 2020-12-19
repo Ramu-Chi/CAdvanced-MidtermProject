@@ -44,12 +44,15 @@ void genSort(int *accList, int l, int r, int (*compare)(int, int));
 void swap(int *accList, int id1, int id2);
 
 /*Search function*/
+char* getGender(Gender gender);
+int checkAccount(int id, char *name, char *city, char *gender);
 void binarySearch(int *accList, int l, int r, char *name, char *city, char *gender);
 
 /*Shortest Path*/
 int shortestPath(int s, int t, int *path); // return path length
 
 /*Debuging*/
+void printAccount(int id);
 void testPrintVertex();
 void testPrintEdge();
 int testConnectedGraph(); // testing DataSet
@@ -214,7 +217,7 @@ int compareName(int id1, int id2) {
 }
 
 int compareFriendCount(int id1, int id2) {
-    
+   
 }
 
 void swap(int *accList, int id1, int id2) {
@@ -227,8 +230,41 @@ void genSort(int *accList, int l, int r, int (*compare)(int, int)) {
 
 /* ------------------------ Search Function ------------------------ */
 
+char* getGender(Gender gender) {
+    if (gender == Male) return "male";
+    else if (gender == Female) return "female";
+    else return "other";
+}
+
+int checkAccount(int id, char *name, char *city, char *gender) {
+    Info tmp = getVertexInfo(id);
+    if (strcasecmp(tmp->name, name) != 0) return 0;
+    if (city != NULL && strcasecmp(tmp->city, city) != 0) return 0;
+    if (gender != NULL && strcasecmp(gender, getGender(tmp->gender)) != 0) return 0;
+    return 1;
+}
+
 void binarySearch(int *accList, int l, int r, char *name, char *city, char *gender) {
+    int mid;
+    while (l <= r) {
+        mid = (l + r) / 2;
+        Info tmp = getVertexInfo(*(accList + mid));
+        if (strcasecmp(tmp->name, name) > 0) r = mid - 1;
+        else if (strcasecmp(tmp->name, name) < 0) l = mid + 1;
+        else break;
+    }
     
+    int i = mid, j = mid-1;
+    while (i <= accountCount - 1) {
+        if (checkAccount(*(accList + i), name, city, gender) == 0) break;
+        printAccount(*(accList + i));
+        i++;
+    }
+    while (j >= 0) {
+        if (checkAccount(*(accList + j), name, city, gender) == 0) break;
+        printAccount(*(accList + j));
+        j--;
+    }
 }
 
 /* ------------------------ Shortest Path ------------------------ */
@@ -290,6 +326,13 @@ int shortestPath(int s, int t, int *path) {
 }
 
 /* ------------------------ Debuging ------------------------ */
+
+void printAccount(int id){
+    Info tmp = getVertexInfo(id);
+    char gender[10];
+    strcpy(gender, getGender(tmp->gender));
+    printf("ID: %d\nname: %s\ncity: %s\ngender: %s\n\n", id, tmp->name, tmp->city, gender);
+}
 
 void testPrintVertex() {
     if (accountCount > 100) return;
