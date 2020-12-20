@@ -38,6 +38,7 @@ int readNodeData(char *fileName); // return 1 if read successfully, 0 otherwise
 int readConnectionData(char *fileName); // return 1 if read successfully, 0 otherwise
 
 /*Sorting function*/
+int compareString(const char *s1, const char *s2); // not case sensitive
 int compareName(int id1, int id2);
 int compareFriendCount(int id1, int id2);
 void genSort(int *accList, int l, int r, int (*compare)(int, int));
@@ -68,10 +69,10 @@ int main(int argc, char *argv[]) {
         if (readConnectionData(argv[2]) == 0) return -1;
     }
     
-    testPrintEdge();
-    printf("\n");
-    testPrintVertex();
-    printf("\n");
+    // testPrintEdge();
+    // printf("\n");
+    // testPrintVertex();
+    // printf("\n");
 
     getMinMaxFriendCount();
     testConnectedGraph();
@@ -215,12 +216,18 @@ int readConnectionData(char *fileName) {
 
 /* ------------------------ Sorting Function ------------------------ */
 
+int compareString(const char *s1, const char *s2) { 
+	while (*s1 && (toupper(*s1) == toupper(*s2)))
+        s1++, s2++;
+    return toupper(*s1) - toupper(*s2);
+}
+
 int compareName(int id1, int id2) {
     
 }
 
 int compareFriendCount(int id1, int id2) {
-   
+    
 }
 
 void swap(int *accList, int id1, int id2) {
@@ -241,9 +248,9 @@ char* getGender(Gender gender) {
 
 int checkAccount(int id, char *name, char *city, char *gender) {
     Info tmp = getVertexInfo(id);
-    if (strcasecmp(tmp->name, name) != 0) return 0;
-    if (city != NULL && strcasecmp(tmp->city, city) != 0) return 0;
-    if (gender != NULL && strcasecmp(gender, getGender(tmp->gender)) != 0) return 0;
+    if (compareString(tmp->name, name) != 0) return 0;
+    if (city != NULL && compareString(tmp->city, city) != 0) return 0;
+    if (gender != NULL && compareString(gender, getGender(tmp->gender)) != 0) return 0;
     return 1;
 }
 
@@ -251,23 +258,31 @@ void binarySearch(int *accList, int l, int r, char *name, char *city, char *gend
     int mid;
     while (l <= r) {
         mid = (l + r) / 2;
-        Info tmp = getVertexInfo(*(accList + mid));
-        if (strcasecmp(tmp->name, name) > 0) r = mid - 1;
-        else if (strcasecmp(tmp->name, name) < 0) l = mid + 1;
+        Info tmp = getVertexInfo(accList[mid]);
+        if (compareString(tmp->name, name) > 0) r = mid - 1;
+        else if (compareString(tmp->name, name) < 0) l = mid + 1;
         else break;
     }
     
-    int i = mid, j = mid-1;
+    printf("%-10s%-30s%-20s%-10s\n", "ID", "NAME", "CITY", "GENDER");
+    int i = mid, j = mid-1, flag = 0;
     while (i <= accountCount - 1) {
-        if (checkAccount(*(accList + i), name, city, gender) == 0) break;
-        printAccount(*(accList + i));
+        if (compareString(getVertexInfo(accList[i])->name, name) != 0) break;
+        if (checkAccount(accList[i], name, city, gender) == 1) {
+            printAccount(accList[i]);
+            flag++;
+        }
         i++;
     }
     while (j >= 0) {
-        if (checkAccount(*(accList + j), name, city, gender) == 0) break;
-        printAccount(*(accList + j));
+        if (compareString(getVertexInfo(accList[j])->name, name) != 0) break;
+        if (checkAccount(accList[j], name, city, gender) == 1) {
+            printAccount(accList[j]);
+            flag++;
+        }
         j--;
     }
+    if (!flag) printf("NO RESULT FOUND\n");
 }
 
 /* ------------------------ Shortest Path ------------------------ */
@@ -332,14 +347,14 @@ int shortestPath(int s, int t, int *path) {
 
 void RecommendFriend(int id) {
     JRB tree, node;
-    int *check;
-    check = (int*) calloc(accountCount + 1, sizeof(int));
-    check[id] = -1;
+    int *count;
+    count = (int*) calloc(accountCount + 1, sizeof(int));
+    count[id] = -1;
     
     tree = jrb_find_int(graph.edges, id);
     tree = (JRB) jval_v(tree->val);
     jrb_traverse(node, tree) {
-        check[jval_i(node->key)] = -1;
+        count[jval_i(node->key)] = -1;
     }
 
     jrb_traverse(node, tree) {
@@ -348,24 +363,26 @@ void RecommendFriend(int id) {
         innerTree = (JRB) jval_v(innerTree->val);
         jrb_traverse(innerNode, innerTree) {
             int tmp = jval_i(innerNode->key);
-            if (check[tmp] != -1) check[tmp]++;
+            if (count[tmp] != -1) count[tmp]++;
         }
     }
 
     int max = 0;
     for (int i = 1; i <= accountCount; i++) {
-        if (max < check[i]) max = check[i];
+        if (max < count[i]) max = count[i];
     }
 
+    printf("Recommend friends for user-%s / ID-%d\n", getVertexInfo(id)->name, id);
+    printf("%-10s%-30s%s\n", "ID", "NAME", "Mutual Friend");
     for (int i = 1; i <= accountCount; i++) {
-        if (check[i] == max) {
+        if (count[i] == max) {
             JRB account = jrb_find_int(graph.vertices, i);
             Info info = (Info) jval_v(account->val);
-            printf("ID: %d\nName: %s\n%d common friends\n\n", i, info->name, max);
+            printf("%-10d%-30s%d%s\n", i, info->name, max, " mutual friends");
         }
     }
 
-    free(check);
+    free(count);
 }
 
 /* ------------------------ Debuging ------------------------ */
@@ -374,22 +391,19 @@ void printAccount(int id){
     Info tmp = getVertexInfo(id);
     char gender[10];
     strcpy(gender, getGender(tmp->gender));
-    printf("ID: %d\nname: %s\ncity: %s\ngender: %s\n\n", id, tmp->name, tmp->city, gender);
+    printf("%-10d%-30s%-20s%-10s\n", id, tmp->name, tmp->city, gender);
 }
 
 void testPrintVertex() {
     if (accountCount > 100) return;
+    printf("%-10s%-30s%-20s%-10s%-12s\n", "ID", "NAME", "CITY", "GENDER", "Friend Count");
     JRB account;
     jrb_traverse(account, graph.vertices) {
-        printf("ID: %d\n", jval_i(account->key));
+        printf("%-10d", jval_i(account->key));
         Info info = (Info) jval_v(account->val);
         char gender[10];
-        switch (info->gender) {
-        case 0: strcpy(gender, "Male"); break;
-        case 1: strcpy(gender, "Female"); break;
-        default: strcpy(gender, "Other"); break;
-        }
-        printf("name: %s\ncity: %s\ngender: %s\nfriend count: %d\n\n", info->name, info->city, gender, info->friendCount);
+        strcpy(gender, getGender(info->gender));
+        printf("%-30s%-20s%-10s%-12d\n", info->name, info->city, gender, info->friendCount);
     }
 }
 
