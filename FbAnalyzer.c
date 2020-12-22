@@ -69,13 +69,10 @@ int main(int argc, char *argv[]) {
         if (readConnectionData(argv[2]) == 0) return -1;
     }
     
-    // testPrintEdge();
-    // printf("\n");
-    // testPrintVertex();
-    // printf("\n");
-
     getMinMaxFriendCount();
     testConnectedGraph();
+    printf("\nPress enter to continue");
+    getchar();
 
     dropGraph();
     return 0;
@@ -91,6 +88,7 @@ Graph createGraph() {
 }
 
 void dropGraph() {
+    printf("\nDropping Graph...\n");
     JRB node, tree;
     jrb_traverse(node, graph.vertices) {
         Info info = (Info) jval_v(node->val);
@@ -105,6 +103,7 @@ void dropGraph() {
         jrb_free_tree(tree);
     }
     jrb_free_tree(graph.edges);
+    printf("Done!\n");
 }
 
 void addVertex(int id, char *name, char *city, Gender gender) {
@@ -174,6 +173,7 @@ int hasEdge(int id1, int id2) {
 }
 
 int readNodeData(char *fileName) {
+    printf("Reading Node Data File...\t\t");
     FILE *dataStream = fopen(fileName, "rt");
     if (dataStream == NULL) return 0;
 
@@ -197,19 +197,23 @@ int readNodeData(char *fileName) {
             currentChar = getc(dataStream);
     }
     
+    printf("%d Nodes\n", accountCount);
     fclose(dataStream);
     return 1;
 }
 
 int readConnectionData(char *fileName) {
+    printf("Reading Connection Data File...\t\t");
     FILE *dataStream = fopen(fileName, "rt");
     if (dataStream == NULL) return 0;
-    int id1, id2;
+    int id1, id2, count = 0;
     while (fscanf(dataStream, "%d%d", &id1, &id2) == 2) {
         if (id1 >= id2 || id2 > accountCount) return 0;
         addEdge(id1, id2);
+        count++;
     }
 
+    printf("%d Edges\n\n", count);
     fclose(dataStream);
     return 1;
 }
