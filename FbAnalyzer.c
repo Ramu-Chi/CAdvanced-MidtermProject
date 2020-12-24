@@ -266,18 +266,16 @@ int compareFriendCount(int id1, int id2) {
 }
 
 void swap(int *accList, int id1, int id2) {
-    int tmp;
-    tmp = accList[id1];
+    int tmp = accList[id1];
     accList[id1] = accList[id2];
     accList[id2] = tmp;
 }
 
 void genSort(int *accList, int l, int r, int (*compare)(int, int)) {
     if (r <= l) return;
-    int i = l-1, j = r;
-    int p = l-1, q = r;
-    while (1)
-    {
+    int i = l - 1, j = r;
+    int p = l - 1, q = r;
+    while (1) {
         while (compare(accList[++i], accList[r]) < 0);
         while (compare(accList[r], accList[--j]) < 0) if (j == l) break;
         if (i >= j) break;
@@ -286,10 +284,10 @@ void genSort(int *accList, int l, int r, int (*compare)(int, int)) {
         if (compare(accList[j], accList[r]) == 0) swap(accList, --q, j);
     }
     swap(accList, i, r);
-    j = i-1;
+    j = i - 1;
     i += 1;
     for (int k = l; k <= p; k++) swap(accList, k, j--);
-    for (int k = r-1; k >= q; k--) swap(accList, k, i++);
+    for (int k = r - 1; k >= q; k--) swap(accList, k, i++);
     genSort(accList, l, j, compare);
     genSort(accList, i, r, compare);
 }
@@ -305,8 +303,8 @@ char* getGender(Gender gender) {
 int checkAccount(int id, char *name, char *city, char *gender) {
     Info tmp = getVertexInfo(id);
     if (compareString(tmp->name, name) != 0) return 0;
-    if (strcmp(city, "") && compareString(tmp->city, city) != 0) return 0;
-    if (strcmp(gender, "") && compareString(gender, getGender(tmp->gender)) != 0) return 0;
+    if (strcmp(city, "0") && compareString(tmp->city, city) != 0) return 0;
+    if (strcmp(gender, "0") && compareString(gender, getGender(tmp->gender)) != 0) return 0;
     return 1;
 }
 
@@ -501,13 +499,7 @@ int testConnectedGraph() {
     }
 
     if (count == 0) printf("Connected Graph\n");
-    else {
-        printf("%d disconnected node:\n", count);
-        for (int i = 1; i <= accountCount; i++) {
-            if (visit[i] == 0) printf("%d ", i);
-        }
-        printf("\n");
-    }
+    else printf("Disconnected Graph\n");
     
     free(visit);
     free_dllist(queue);
@@ -588,11 +580,11 @@ void menuSortSearch() {
         gets(name);
         printf("Filter by city (0 if no filter): ");
         scanf("%s", city);
-        if (strcmp(city, "0") == 0) city[0] = '\0';
+        //if (strcmp(city, "0") == 0) city[0] = '\0';
         printf("Filter by gender (0 if no filter): ");
         while (1) {
             scanf("%s", gender);
-            if (strcmp(gender, "0") == 0) gender[0] = '\0';
+            if (strcmp(gender, "0") == 0); //gender[0] = '\0';
             else if (compareString(gender, "male") == 0);
             else if (compareString(gender, "female") == 0);
             else if (compareString(gender, "other") == 0);
