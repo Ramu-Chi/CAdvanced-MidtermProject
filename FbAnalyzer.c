@@ -74,6 +74,10 @@ int main(int argc, char *argv[]) {
     printf("\nPress enter to continue");
     getchar();
 
+    int *acclist = (int*) malloc (sizeof(int)*accountCount);
+    for (int i = 0; i < accountCount; i++) *(acclist + i) = i + 1;
+    genSort(acclist, 0, accountCount-1, &compareName);
+    for (int i = 0; i < accountCount; i++) printAccount(acclist[i]);
     dropGraph();
     return 0;
 }
@@ -227,19 +231,55 @@ int compareString(const char *s1, const char *s2) {
 }
 
 int compareName(int id1, int id2) {
-    
+    Info info1 = getVertexInfo(id1);
+    Info info2 = getVertexInfo(id2);
+    return strcmp(info1->name, info2->name);
 }
 
 int compareFriendCount(int id1, int id2) {
-    
+    Info info1 = getVertexInfo(id1);
+    Info info2 = getVertexInfo(id2);
+    if (info1->friendCount > info2->friendCount) return 1;
+    if (info1->friendCount == info2->friendCount) return 0;
+    return -1;
 }
 
 void swap(int *accList, int id1, int id2) {
-    
+    int tmp;
+    tmp = accList[id1];
+    accList[id1] = accList[id2];
+    accList[id2] = tmp;
 }
 
 void genSort(int *accList, int l, int r, int (*compare)(int, int)) {
-    
+    if (r <= l) return;
+    int i = l-1, j = r;
+    int p = l-1, q = r;
+    while (1)
+    {
+        // while (accList[++i]<accList[r]);
+        while (compare(accList[++i], accList[r]) < 0)
+        // while (accList[r]<accList[--j]) if (j==l) break;
+        while (compare(accList[r], accList[--j]) < 0) if (j == l) break;
+        if (i >= j) break;
+        swap(accList, i, j);
+        // if (accList[i]==accList[r]) swap(accList[++p], a[i]);
+        // if (accList[j]==accList[r]) swap(a[--q], a[j]);
+        if (compare(accList[i], accList[r]) == 0) swap(accList, ++p, i);
+        if (compare(accList[j], accList[r]) == 0) swap(accList, --q, j);
+    }
+    // swap(a[i], a[r]);
+    swap(accList, i, r);
+    j = i-1;
+    i += 1;
+    // for (int k = l; k <= p; k++) swap(a[k], a[j--]);
+    // for (int k=r-1; k>=q; k--) swap(a[k], a[i++]);
+    for (int k = l; k <= p; k++) swap(accList, k, j--);
+    for (int k = r-1; k >= q; k--) swap(accList, k, i++);
+    // threewaysort(a, l, j);
+    // threewaysort(a, i, r);
+    genSort(accList, l, j, compare);
+    genSort(accList, i, r, compare);
 }
 
 /* ------------------------ Search Function ------------------------ */
