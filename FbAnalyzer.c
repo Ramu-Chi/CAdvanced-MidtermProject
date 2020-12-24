@@ -252,38 +252,46 @@ int compareString(const char *s1, const char *s2) {
 }
 
 int compareName(int id1, int id2) {
-    JRB acc1, acc2;
-    acc1 = jrb_find_int(graph.vertices, id1);
-    acc2 = jrb_find_int(graph.vertices, id2);
-    
-    Info info1, info2;
-    info1 = (Info) jval_v(acc1->val);
-    info2 = (Info) jval_v(acc2->val);
-
-    return strcmp(info1->name, info2->name);
+    Info info1 = getVertexInfo(id1);
+    Info info2 = getVertexInfo(id2);
+    return compareString(info1->name, info2->name);
 }
 
 int compareFriendCount(int id1, int id2) {
-    JRB acc1, acc2;
-    acc1 = jrb_find_int(graph.vertices, id1);
-    acc2 = jrb_find_int(graph.vertices, id2);
-    
-    Info info1, info2;
-    info1 = (Info) jval_v(acc1->val);
-    info2 = (Info) jval_v(acc1->val);
-
+    Info info1 = getVertexInfo(id1);
+    Info info2 = getVertexInfo(id2);
+    if (info1->friendCount > info2->friendCount) return 1;
     if (info1->friendCount == info2->friendCount) return 0;
-    return (info1->friendCount > info2->friendCount) ? 1 : -1; 
+    return -1;
 }
 
 void swap(int *accList, int id1, int id2) {
-    int tmp = accList[id1];
+    int tmp;
+    tmp = accList[id1];
     accList[id1] = accList[id2];
     accList[id2] = tmp;
 }
 
 void genSort(int *accList, int l, int r, int (*compare)(int, int)) {
-    
+    if (r <= l) return;
+    int i = l-1, j = r;
+    int p = l-1, q = r;
+    while (1)
+    {
+        while (compare(accList[++i], accList[r]) < 0);
+        while (compare(accList[r], accList[--j]) < 0) if (j == l) break;
+        if (i >= j) break;
+        swap(accList, i, j);
+        if (compare(accList[i], accList[r]) == 0) swap(accList, ++p, i);
+        if (compare(accList[j], accList[r]) == 0) swap(accList, --q, j);
+    }
+    swap(accList, i, r);
+    j = i-1;
+    i += 1;
+    for (int k = l; k <= p; k++) swap(accList, k, j--);
+    for (int k = r-1; k >= q; k--) swap(accList, k, i++);
+    genSort(accList, l, j, compare);
+    genSort(accList, i, r, compare);
 }
 
 /* ------------------------ Search Function ------------------------ */
