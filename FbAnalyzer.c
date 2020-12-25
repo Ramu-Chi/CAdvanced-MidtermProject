@@ -66,6 +66,7 @@ void getMinMaxFriendCount(); // testing DataSet
 void clearBuffer();
 int getID();
 int getMenu();
+void menuGetIDInfo();
 void menuSortSearch();
 void menuShortestPath();
 void menuRecommendFriend();
@@ -79,7 +80,7 @@ int main(int argc, char *argv[]) {
     
     getMinMaxFriendCount();
     testConnectedGraph();
-    printf("\nPress enter to continue");
+    printf("\nPress Enter to continue");
     getchar();
 
     int menu;
@@ -87,17 +88,20 @@ int main(int argc, char *argv[]) {
         menu = getMenu();
         switch (menu) {
         case '1':
-            menuSortSearch();
+            menuGetIDInfo();
             break;
         case '2':
-            menuShortestPath();
+            menuSortSearch();
             break;
         case '3':
+            menuShortestPath();
+            break;
+        case '4':
             menuRecommendFriend();
             break;
         default: break;
         }
-    } while (menu != '4');
+    } while (menu != '5');
 
     dropGraph();
     return 0;
@@ -301,10 +305,10 @@ char* getGender(Gender gender) {
 }
 
 int checkAccount(int id, char *name, char *city, char *gender) {
-    Info tmp = getVertexInfo(id);
-    if (compareString(tmp->name, name) != 0) return 0;
-    if (strcmp(city, "0") && compareString(tmp->city, city) != 0) return 0;
-    if (strcmp(gender, "0") && compareString(gender, getGender(tmp->gender)) != 0) return 0;
+    Info info = getVertexInfo(id);
+    if (compareString(info->name, name) != 0) return 0;
+    if (strcmp(city, "0") != 0 && compareString(info->city, city) != 0) return 0;
+    if (strcmp(gender, "0") != 0 && compareString(gender, getGender(info->gender)) != 0) return 0;
     return 1;
 }
 
@@ -442,10 +446,10 @@ void RecommendFriend(int id) {
 /* ------------------------ Debuging ------------------------ */
 
 void printAccount(int id){
-    Info tmp = getVertexInfo(id);
+    Info info = getVertexInfo(id);
     char gender[10];
-    strcpy(gender, getGender(tmp->gender));
-    printf("%-10d%-30s%-20s%-10s\n", id, tmp->name, tmp->city, gender);
+    strcpy(gender, getGender(info->gender));
+    printf("%-10d%-30s%-20s%-10s\n", id, info->name, info->city, gender);
 }
 
 void testPrintVertex() {
@@ -522,15 +526,16 @@ void getMinMaxFriendCount() {
 
 void clearBuffer() {
     int c;
-    do {
+    while (c != '\n' && c != EOF) {
         c = getchar();
-    } while (c != '\n' && c != EOF);
+    }
 }
 
 int getID() {
     int id;
     while (1) {
         scanf("%d", &id);
+        clearBuffer();   
         if (id > 0 && id <= accountCount) break;
         else printf("INVALID ID, try again: ");
     }
@@ -540,24 +545,41 @@ int getID() {
 int getMenu() {
     int menu;
     printf("\n---------- Menu ----------\n");
-    printf("1. Sort and Search\n");
-    printf("2. Shortest Path\n");
-    printf("3. Recommend Friend\n");
-    printf("4. Exit\n");
+    printf("1. Get ID info\n");
+    printf("2. Sort and Search\n");
+    printf("3. Shortest Path\n");
+    printf("4. Recommend Friend\n");
+    printf("5. Exit\n");
     printf("\nSelect function: ");
     while (1) {
         menu = getchar();
         clearBuffer();
-        if (menu == '1' || menu == '2' || menu == '3' || menu == '4') break;
+        if (menu == '1' || menu == '2' || menu == '3' || menu == '4' || menu == '5') break;
         else printf("INVALID INPUT, try again: ");
     } 
     return menu;
 }
 
+void menuGetIDInfo() {
+    int id;
+    printf("\n---------- Get ID Information ----------\n");
+    printf("Input ID: ");
+    id = getID();
+
+    printf("\n%-30s%-20s%-20s%-12s\n", "NAME", "CITY", "GENDER", "FRIENDS");
+    Info info = getVertexInfo(id);
+    char gender[10];
+    strcpy(gender, getGender(info->gender));
+    printf("%-30s%-20s%-20s%d friends\n", info->name, info->city, gender, info->friendCount);
+
+    printf("\nPress Enter to continue");
+    getchar();
+}
+
 void menuSortSearch() {
     int menu;
     printf("\n---------- Sort / Search ----------\n");
-    printf("1. Sort by name\n");
+    printf("1. Sort / Search by name\n");
     printf("2. Sort by number of friend\n");
     printf("\nSelect function: ");
     while (1) {
@@ -580,11 +602,10 @@ void menuSortSearch() {
         gets(name);
         printf("Filter by city (0 if no filter): ");
         scanf("%s", city);
-        //if (strcmp(city, "0") == 0) city[0] = '\0';
         printf("Filter by gender (0 if no filter): ");
         while (1) {
             scanf("%s", gender);
-            if (strcmp(gender, "0") == 0); //gender[0] = '\0';
+            if (strcmp(gender, "0") == 0);
             else if (compareString(gender, "male") == 0);
             else if (compareString(gender, "female") == 0);
             else if (compareString(gender, "other") == 0);
@@ -595,18 +616,22 @@ void menuSortSearch() {
             break;
         }
         binarySearch(accList, 0, accountCount - 1, name, city, gender);
+        clearBuffer();
         break;
     case '2':
         genSort(accList, 0, accountCount - 1, &compareFriendCount);
         printf("Sort done!\n");
 
+        float med;
+        if (accountCount % 2) med = getVertexInfo(accList[(accountCount - 1) / 2])->friendCount;
+        else med = (getVertexInfo(accList[(accountCount - 1) / 2])->friendCount + getVertexInfo(accList[accountCount / 2])->friendCount) / 2;
+        printf("\nThe median value for the number of friend: %.1f\n", med);
         break;
     default: break;
     }
 
     free(accList);
-    clearBuffer();
-    printf("\nPress enter to continue");
+    printf("\nPress Enter to continue");
     getchar();
 }
 
@@ -625,8 +650,7 @@ void menuShortestPath() {
     for (int i = 0; i <= length; i++) printf("%d ", path[i]);
 
     free(path);
-    clearBuffer();
-    printf("\n\nPress enter to continue");
+    printf("\n\nPress Enter to continue");
     getchar();
 }
 
@@ -637,7 +661,6 @@ void menuRecommendFriend() {
     id = getID();
     
     RecommendFriend(id);
-    clearBuffer();
-    printf("\nPress enter to continue");
+    printf("\nPress Enter to continue");
     getchar();
 }

@@ -1,17 +1,23 @@
-- Topic: Analyzing Facebook users
+# Analyzing Facebook Users - Midterm Project
+An application to manage and analyze Facebook social account using graph
 
-Each account will be a vertex (node) and there will be connection b/w accounts that are friend with each other (edge).
+## Running
+.\FB.exe .\Data\NodeFile.txt .\Data\ConnectionFile.txt
 
-User A wants to make friends with user B. But since user B doesn’t know A, A plan is to ask one of his friends, who is also friend with B, to introduce him. The goal here is to find the shortest path from A to B, and this will be included as a new feature by Facebook.
+## Main Function
+- Get ID information
+- Sorting user by name / friend count
+- Search user by name (with filter city / gender)
+- Find Shortest Path
+- Recommend Friend
 
-Facebook also wants to sort users by name / the number of friends, and some more functions.
+## Dataset
+- Connected Graph 
+- 100,000 user accounts (Node)
+- 6,497,776 friend connections (Edge)
 
-- Main Function:
-    + Finding shortest path
-    + Sorting accounts by name / the number of friends
-    + Recommend friend with the most common friends for each account
-    + Get user info by name, list all duplicated results (sort by name then binary search)
-
-- Note:
-    + NodeFile before ConnectionFile (when run)
-    
+## Authors
+- Team **Clockwise**:
+    + Đào Nguyễn Tùng Lâm - 20184282
+    + Đỗ Long Minh - 20184289
+    + Thân Trọng Nghĩa - 20184298
