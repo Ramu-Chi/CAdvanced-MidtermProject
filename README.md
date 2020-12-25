@@ -18,6 +18,7 @@ An application to manage and analyze Facebook social account using graph
 
 ## Authors
 - Team **Clockwise**:
+
     + Đào Nguyễn Tùng Lâm - 20184282
     + Đỗ Long Minh - 20184289
     + Thân Trọng Nghĩa - 20184298
