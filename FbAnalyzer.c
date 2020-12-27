@@ -55,6 +55,9 @@ int shortestPath(int s, int t, int *path); // return path length
 /*Recommend Friend*/
 void RecommendFriend(int id);
 
+/*Mutual Friend*/
+void mutualFriend(int id1, int id2);
+
 /*Debuging*/
 void printAccount(int id);
 void testPrintVertex();
@@ -70,6 +73,7 @@ void menuGetIDInfo();
 void menuSortSearch();
 void menuShortestPath();
 void menuRecommendFriend();
+void menuMutualFriend();
 
 int main(int argc, char *argv[]) {
     graph = createGraph();
@@ -99,9 +103,12 @@ int main(int argc, char *argv[]) {
         case '4':
             menuRecommendFriend();
             break;
+        case '5':
+            menuMutualFriend();
+            break;
         default: break;
         }
-    } while (menu != '5');
+    } while (menu != '6');
 
     dropGraph();
     return 0;
@@ -443,6 +450,38 @@ void RecommendFriend(int id) {
     free(count);
 }
 
+/* ------------------------ Mutual Friend ------------------------ */
+
+void mutualFriend(int id1, int id2) {
+    int *check = (int*) calloc(accountCount + 1, sizeof(int));
+    int count = 0;
+    JRB node, acc1, acc2;
+    acc1 = jrb_find_int(graph.edges, id1);
+    acc2 = jrb_find_int(graph.edges, id2);
+
+    acc1 = (JRB) jval_v(acc1->val);
+    acc2 = (JRB) jval_v(acc2->val);
+
+    jrb_traverse(node, acc1) {
+        int tmp = jval_i(node->key);
+        check[tmp]++;
+    }
+
+    jrb_traverse(node, acc2) {
+        int tmp = jval_i(node->key);
+        check[tmp]++;
+        if (check[tmp] == 2) count++;
+    }
+
+    printf("\n%d Mutual Friends\n", count);
+    printf("\n%-10s%-30s%-20s%-10s\n", "ID", "NAME", "CITY", "GENDER");
+    for (int i = 1; i <= accountCount; i++) {
+        if (check[i] == 2) printAccount(i);
+    }
+
+    free(check);
+}
+
 /* ------------------------ Debuging ------------------------ */
 
 void printAccount(int id){
@@ -549,12 +588,13 @@ int getMenu() {
     printf("2. Sort and Search\n");
     printf("3. Shortest Path\n");
     printf("4. Recommend Friend\n");
-    printf("5. Exit\n");
+    printf("5. Mutual Friend\n");
+    printf("6. Exit\n");
     printf("\nSelect function: ");
     while (1) {
         menu = getchar();
         clearBuffer();
-        if (menu == '1' || menu == '2' || menu == '3' || menu == '4' || menu == '5') break;
+        if (menu >= '1' && menu <= '6') break;
         else printf("INVALID INPUT, try again: ");
     } 
     return menu;
@@ -661,6 +701,19 @@ void menuRecommendFriend() {
     id = getID();
     
     RecommendFriend(id);
+    printf("\nPress Enter to continue");
+    getchar();
+}
+
+void menuMutualFriend() {
+    int id1, id2;
+    printf("\n---------- Mutual Friend ----------\n");
+    printf("Input ID 1: ");
+    id1 = getID();
+    printf("Input ID 2: ");
+    id2 = getID();
+
+    mutualFriend(id1, id2);
     printf("\nPress Enter to continue");
     getchar();
 }
