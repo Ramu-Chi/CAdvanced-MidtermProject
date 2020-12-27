@@ -10,6 +10,7 @@ An application to manage and analyze Facebook social account using graph
 - Search user by name (with filter city / gender)
 - Find Shortest Path
 - Recommend Friend
+- Mutual Friend
 
 ## Dataset
 - Connected Graph 
