@@ -34,6 +34,8 @@ void addVertex(int id, char *name, char *city, Gender gender);
 Info getVertexInfo(int id);
 void addEdge(int id1, int id2);
 int hasEdge(int id1, int id2);
+
+/*Read File*/
 int readNodeData(char *fileName); // return 1 if read successfully, 0 otherwise
 int readConnectionData(char *fileName); // return 1 if read successfully, 0 otherwise
 
@@ -207,6 +209,8 @@ int hasEdge(int id1, int id2) {
     if (jrb_find_int(tree, id2) == 0) return 0;
     return 1;
 }
+
+/* ------------------------ Read File ------------------------ */
 
 int readNodeData(char *fileName) {
     printf("Reading Node Data File...\t\t");
